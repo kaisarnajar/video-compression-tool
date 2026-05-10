@@ -11,8 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/video-compression-tool/assets/index-C_E2kH7i.js"></script>
-    <link rel="stylesheet" crossorigin href="/video-compression-tool/assets/index-iFSD2nVa.css">
+    <script type="module" crossorigin src="/video-compression-tool/assets/index-CFJcuF3F.js"></script>
+    <link rel="stylesheet" crossorigin href="/video-compression-tool/assets/index-DLrX768I.css">
   </head>
   <body>
     <div id="app">
@@ -32,7 +32,7 @@
             <span class="panel__step">1</span>
             <div>
               <h2 class="panel__title">Compression strength</h2>
-              <p class="panel__hint">Lower CRF = larger file, higher quality.</p>
+              <p class="panel__hint">Higher CRF = smaller file. Very high aims near ~20–30% size vs mild presets (depends on your clip).</p>
             </div>
           </div>
           <div class="preset-grid" role="radiogroup" aria-label="Compression preset">
@@ -58,6 +58,14 @@
                 <span class="preset__name">High</span>
                 <span class="preset__crf mono">CRF 28</span>
                 <span class="preset__note">Smaller file</span>
+              </span>
+            </label>
+            <label class="preset">
+              <input type="radio" name="preset" value="veryhigh" />
+              <span class="preset__card">
+                <span class="preset__name">Very high</span>
+                <span class="preset__crf mono">CRF 36</span>
+                <span class="preset__note">~20–30% size · stronger quality tradeoff</span>
               </span>
             </label>
           </div>

@@ -30,7 +30,7 @@
             <span class="panel__step">1</span>
             <div>
               <h2 class="panel__title">Compression strength</h2>
-              <p class="panel__hint">Lower CRF = larger file, higher quality.</p>
+              <p class="panel__hint">Higher CRF = smaller file. Very high aims near ~20–30% size vs mild presets (depends on your clip).</p>
             </div>
           </div>
           <div class="preset-grid" role="radiogroup" aria-label="Compression preset">
@@ -56,6 +56,14 @@
                 <span class="preset__name">High</span>
                 <span class="preset__crf mono">CRF 28</span>
                 <span class="preset__note">Smaller file</span>
+              </span>
+            </label>
+            <label class="preset">
+              <input type="radio" name="preset" value="veryhigh" />
+              <span class="preset__card">
+                <span class="preset__name">Very high</span>
+                <span class="preset__crf mono">CRF 36</span>
+                <span class="preset__note">~20–30% size · stronger quality tradeoff</span>
               </span>
             </label>
           </div>

@@ -4,7 +4,7 @@ Small static web app that compresses video in the browser using [ffmpeg.wasm](ht
 
 ## Features
 
-- **Compression presets:** Low (CRF 23), Medium (CRF 26), High (CRF 28).
+- **Compression presets:** Low (CRF 23), Medium (CRF 26), High (CRF 28), Very high (CRF 36 — targets much smaller files, ~20–30% vs gentle presets depending on source).
 - **Output name:** `originalname_compression.mp4` (the base name of the file you pick, plus `_compression.mp4`).
 - **One video picker:** choose a single video. Web pages cannot read the real disk path, but **Chrome / Edge** open a **Save** dialog after encoding so you can store the result **next to the original**. Other browsers download the file instead.
 

@@ -3,7 +3,8 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import coreURL from '@ffmpeg/core?url'
 import wasmURL from '@ffmpeg/core/wasm?url'
 
-const CRF_BY_PRESET = { low: 23, medium: 26, high: 28 } as const
+/** Higher CRF = smaller file. Very high targets ~20–30% of typical exports; exact ratio depends on source. */
+const CRF_BY_PRESET = { low: 23, medium: 26, high: 28, veryhigh: 36 } as const
 type Preset = keyof typeof CRF_BY_PRESET
 
 const INPUT_WORK = 'src_in'
@@ -83,7 +84,7 @@ const els = {
 function selectedPreset(): Preset {
   const checked = document.querySelector<HTMLInputElement>('input[name="preset"]:checked')
   const v = checked?.value
-  if (v === 'medium' || v === 'high' || v === 'low') return v
+  if (v === 'medium' || v === 'high' || v === 'low' || v === 'veryhigh') return v
   return 'low'
 }
 
