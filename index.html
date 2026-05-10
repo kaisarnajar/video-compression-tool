@@ -66,37 +66,25 @@
             <span class="panel__step">2</span>
             <div>
               <h2 class="panel__title">Choose video</h2>
-              <p class="panel__hint">Folder mode saves next to the source in Chrome &amp; Edge.</p>
+              <p class="panel__hint">
+                Pick one video. After compression, your browser will ask where to save — choose the same folder as the video to keep them together (Chrome &amp; Edge). Else the file downloads.
+              </p>
             </div>
           </div>
 
-          <div class="actions">
-            <button type="button" class="btn btn-folder" id="btn-folder">
-              <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-              </svg>
-              <span class="btn__text">
-                <span class="btn__label">Select folder</span>
-                <span class="btn__sub">Save output beside the file</span>
-              </span>
-            </button>
-            <button type="button" class="btn btn-file" id="btn-file">
+          <div class="actions actions--single">
+            <button type="button" class="btn btn-video" id="btn-pick-video">
               <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
               <span class="btn__text">
-                <span class="btn__label">Select video file</span>
-                <span class="btn__sub">Download when done</span>
+                <span class="btn__label">Choose video</span>
+                <span class="btn__sub">One file — save the result next to it when prompted</span>
               </span>
             </button>
           </div>
           <input type="file" id="file-input" accept="video/*" hidden />
-
-          <div class="folder-panel" id="folder-panel" hidden>
-            <label class="field-label" for="folder-select">Video in this folder</label>
-            <select id="folder-select" class="select"></select>
-          </div>
 
           <div class="selection" id="selection-card">
             <div class="selection__icon" aria-hidden="true">

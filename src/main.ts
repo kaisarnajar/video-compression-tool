@@ -6,10 +6,17 @@ import wasmURL from '@ffmpeg/core/wasm?url'
 const CRF_BY_PRESET = { low: 23, medium: 26, high: 28 } as const
 type Preset = keyof typeof CRF_BY_PRESET
 
-const VIDEO_RE = /\.(mp4|webm|mov|mkv|avi|m4v)$/i
-
 const INPUT_WORK = 'src_in'
 const OUTPUT_WORK = 'out.mp4'
+
+const VIDEO_PICKER_TYPES = [
+  {
+    description: 'Video',
+    accept: {
+      'video/*': ['.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v'],
+    },
+  },
+]
 
 function outputFilename(originalName: string): string {
   const dot = originalName.lastIndexOf('.')
@@ -22,29 +29,6 @@ function sourceExtension(filename: string): string {
   return dot === -1 ? '.mp4' : filename.slice(dot)
 }
 
-function supportsFolderPick(): boolean {
-  return typeof window !== 'undefined' && 'showDirectoryPicker' in window
-}
-
-async function listVideosInDirectory(dir: FileSystemDirectoryHandle): Promise<FileSystemFileHandle[]> {
-  const out: FileSystemFileHandle[] = []
-  for await (const handle of dir.values()) {
-    if (handle.kind === 'file' && VIDEO_RE.test(handle.name)) {
-      out.push(handle as FileSystemFileHandle)
-    }
-  }
-  out.sort((a, b) => a.name.localeCompare(b.name))
-  return out
-}
-
-async function saveToDirectory(dir: FileSystemDirectoryHandle, name: string, data: Uint8Array): Promise<void> {
-  const fh = await dir.getFileHandle(name, { create: true })
-  const w = await fh.createWritable()
-  const chunk = new Uint8Array(data)
-  await w.write(chunk)
-  await w.close()
-}
-
 function triggerDownload(name: string, data: Uint8Array): void {
   const blob = new Blob([new Uint8Array(data)], { type: 'video/mp4' })
   const url = URL.createObjectURL(blob)
@@ -55,12 +39,35 @@ function triggerDownload(name: string, data: Uint8Array): void {
   URL.revokeObjectURL(url)
 }
 
+async function saveCompressedVideo(suggestedName: string, data: Uint8Array): Promise<void> {
+  const picker = window.showSaveFilePicker
+  if (typeof picker === 'function') {
+    try {
+      const handle = await picker.call(window, {
+        suggestedName,
+        types: [{ description: 'MP4 video', accept: { 'video/mp4': ['.mp4'] } }],
+      })
+      const w = await handle.createWritable()
+      await w.write(new Uint8Array(data))
+      await w.close()
+      setMessage(`Saved · ${suggestedName}`)
+      return
+    } catch (e) {
+      const err = e as Error
+      if (err.name === 'AbortError') {
+        setMessage('Save cancelled.')
+        return
+      }
+      setMessage(`${err.message || String(e)} — downloading instead.`, true)
+    }
+  }
+  triggerDownload(suggestedName, data)
+  setMessage(`Download started · ${suggestedName}`)
+}
+
 const els = {
-  btnFolder: document.querySelector<HTMLButtonElement>('#btn-folder')!,
-  btnFile: document.querySelector<HTMLButtonElement>('#btn-file')!,
+  btnPickVideo: document.querySelector<HTMLButtonElement>('#btn-pick-video')!,
   fileInput: document.querySelector<HTMLInputElement>('#file-input')!,
-  folderPanel: document.querySelector<HTMLElement>('#folder-panel')!,
-  folderSelect: document.querySelector<HTMLSelectElement>('#folder-select')!,
   selectionCard: document.querySelector<HTMLElement>('#selection-card')!,
   selectionPrimary: document.querySelector<HTMLElement>('#selection-primary')!,
   selectionSecondary: document.querySelector<HTMLElement>('#selection-secondary')!,
@@ -80,8 +87,6 @@ function selectedPreset(): Preset {
   return 'low'
 }
 
-let directoryHandle: FileSystemDirectoryHandle | null = null
-let folderFileHandles: FileSystemFileHandle[] = []
 let activeFile: File | null = null
 let activeLabel = ''
 
@@ -104,6 +109,12 @@ function updateOutputHint(): void {
   els.compressOutHint.textContent = activeLabel ? `Creates ${outputFilename(activeLabel)}` : ''
 }
 
+function secondaryHintForSelection(): string {
+  return typeof window.showSaveFilePicker === 'function'
+    ? 'After compression, choose where to save — open the same folder as this video to keep both files together.'
+    : 'After compression, your browser will download the file (no save-location dialog here).'
+}
+
 function setSelectionEmpty(primary = 'No video selected', secondary?: string): void {
   els.selectionCard.classList.remove('has-file')
   els.selectionPrimary.textContent = primary
@@ -117,14 +128,11 @@ function setSelectionEmpty(primary = 'No video selected', secondary?: string): v
   updateOutputHint()
 }
 
-function setSelectionWithFile(filename: string, mode: 'folder' | 'download'): void {
+function setSelectionWithFile(filename: string): void {
   els.selectionCard.classList.add('has-file')
   els.selectionPrimary.textContent = filename
   els.selectionSecondary.hidden = false
-  els.selectionSecondary.textContent =
-    mode === 'folder'
-      ? 'Writes beside the original in the folder you chose.'
-      : 'Downloads automatically when encoding completes.'
+  els.selectionSecondary.textContent = secondaryHintForSelection()
   updateOutputHint()
 }
 
@@ -145,94 +153,49 @@ async function ensureFfmpegLoaded(): Promise<void> {
   setMessage('')
 }
 
-async function refreshFolderSelection(): Promise<void> {
-  const idx = els.folderSelect.selectedIndex
-  const handle = folderFileHandles[idx]
-  if (!handle) {
-    activeFile = null
-    activeLabel = ''
-    setSelectionEmpty()
-    updateCompressEnabled()
-    return
-  }
-  activeFile = await handle.getFile()
-  activeLabel = activeFile.name
-  setSelectionWithFile(activeLabel, 'folder')
-  updateCompressEnabled()
-}
-
-async function onPickFolder(): Promise<void> {
-  if (!supportsFolderPick()) {
-    setMessage('Folder selection is not supported in this browser. Use “Select video file”.', true)
-    return
-  }
+async function pickVideo(): Promise<void> {
   setMessage('')
-  try {
-    const dir = await window.showDirectoryPicker!({ mode: 'readwrite' })
-    directoryHandle = dir
-    folderFileHandles = await listVideosInDirectory(dir)
-    els.folderSelect.innerHTML = ''
-    if (folderFileHandles.length === 0) {
-      els.folderPanel.hidden = true
-      activeFile = null
-      activeLabel = ''
-      setSelectionEmpty('No video files in that folder', 'Pick another folder or use file selection.')
+  const openPicker = window.showOpenFilePicker
+  if (typeof openPicker === 'function') {
+    try {
+      const handles = await openPicker.call(window, {
+        multiple: false,
+        excludeAcceptAllOption: true,
+        types: [...VIDEO_PICKER_TYPES],
+      })
+      const fh = handles[0]
+      if (!fh) return
+      activeFile = await fh.getFile()
+      activeLabel = activeFile.name
+      setSelectionWithFile(activeLabel)
       updateCompressEnabled()
       return
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return
     }
-    for (const h of folderFileHandles) {
-      const opt = document.createElement('option')
-      opt.value = h.name
-      opt.textContent = h.name
-      els.folderSelect.appendChild(opt)
-    }
-    els.folderPanel.hidden = false
-    els.folderSelect.selectedIndex = 0
-    await refreshFolderSelection()
-  } catch (e) {
-    if ((e as Error).name === 'AbortError') return
-    setMessage((e as Error).message || String(e), true)
   }
-}
-
-function onPickFileClick(): void {
-  setMessage('')
-  directoryHandle = null
-  folderFileHandles = []
-  els.folderPanel.hidden = true
-  els.folderSelect.innerHTML = ''
+  els.fileInput.value = ''
   els.fileInput.click()
 }
+
+els.btnPickVideo.addEventListener('click', () => {
+  void pickVideo()
+})
 
 els.fileInput.addEventListener('change', () => {
   const f = els.fileInput.files?.[0]
   if (!f) {
     activeFile = null
     activeLabel = ''
-    setSelectionEmpty(undefined, 'Pick a folder or a single video file.')
+    setSelectionEmpty(undefined, 'Tap “Choose video” or use the dialog when your browser opens it.')
     updateCompressEnabled()
     return
   }
   activeFile = f
   activeLabel = f.name
-  setSelectionWithFile(activeLabel, 'download')
+  setSelectionWithFile(activeLabel)
   updateCompressEnabled()
 })
-
-els.folderSelect.addEventListener('change', () => {
-  void refreshFolderSelection()
-})
-
-els.btnFolder.addEventListener('click', () => {
-  void onPickFolder()
-})
-
-els.btnFile.addEventListener('click', onPickFileClick)
-
-if (!supportsFolderPick()) {
-  els.btnFolder.disabled = true
-  els.btnFolder.title = 'Folder access is not available in this browser.'
-}
 
 els.btnCompress.addEventListener('click', () => {
   void runCompress()
@@ -242,7 +205,7 @@ document.querySelectorAll('input[name="preset"]').forEach((el) => {
   el.addEventListener('change', () => updateOutputHint())
 })
 
-setSelectionEmpty(undefined, 'Pick a folder or a single video file.')
+setSelectionEmpty(undefined, 'Choose a video below. Browsers never expose the full file path, but after encoding you can save next to the original when prompted.')
 
 async function runCompress(): Promise<void> {
   const file = activeFile
@@ -292,15 +255,8 @@ async function runCompress(): Promise<void> {
     if (!(data instanceof Uint8Array)) {
       throw new Error('Compressed output was not binary data.')
     }
-    const bytes = data
 
-    if (directoryHandle) {
-      await saveToDirectory(directoryHandle, outName, bytes)
-      setMessage(`Saved ${outName} in your folder.`)
-    } else {
-      triggerDownload(outName, bytes)
-      setMessage(`Started download · ${outName}`)
-    }
+    await saveCompressedVideo(outName, data)
   } catch (e) {
     setMessage((e as Error).message || String(e), true)
   } finally {
