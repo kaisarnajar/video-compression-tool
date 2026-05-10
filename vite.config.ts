@@ -6,4 +6,8 @@ export default defineConfig(({ command }) => ({
   optimizeDeps: {
     exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/core'],
   },
+  build: {
+    outDir: 'docs',
+    emptyOutDir: true,
+  },
 }))

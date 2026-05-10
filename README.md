@@ -24,38 +24,32 @@ Open the URL Vite prints (usually `http://localhost:5173/`).
 npm run build
 ```
 
-Output is in `dist/`. The production `base` path is set for a **project site** at `/video-compression-tool/`. If your GitHub repository name is different, change `base` in [vite.config.ts](vite.config.ts) to `/<your-repo-name>/` and rebuild.
+The site is written to **`docs/`** (configured in [vite.config.ts](vite.config.ts)). Commit changes under `docs/` when you update the app so GitHub Pages stays in sync.
 
-## GitHub Pages
+The production `base` path is `/video-compression-tool/` for a **project site**. If your repository name changes, update `base` in `vite.config.ts`, rebuild, and commit the new `docs/` output.
 
-This repo includes [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml). GitHub still requires **one manual step** to turn Pages on (there is no `pages.yml` in git that can skip this).
+## GitHub Pages (deploy from `master` + `/docs`)
+
+**Yes — you can use the `master` branch.** In repo settings you choose **which branch and folder** GitHub serves as static hosting. Here we use **`master`** with folder **`/docs`**.
+
+### Why some projects use GitHub Actions instead
+
+| Approach | What happens |
+|----------|----------------|
+| **Branch + `/docs` (this repo)** | You run `npm run build` locally (or elsewhere) and **commit** the generated `docs/` folder. Pages serves those files. No Actions workflow; repo includes large built assets (e.g. WASM). |
+| **GitHub Actions** | CI runs `npm run build` on every push and publishes `dist` without committing binaries to git. Cleaner git history, automatic deploys, but needs workflow YAML and Actions enabled. |
 
 ### Enable Pages (once)
 
-1. Open **Pages settings** for the repo:  
-   [github.com/kaisarnajar/video-compression-tool/settings/pages](https://github.com/kaisarnajar/video-compression-tool/settings/pages)
-2. Under **Build and deployment**, set **Source** to **GitHub Actions** (not “Deploy from a branch”).
-3. Open the [**Actions**](https://github.com/kaisarnajar/video-compression-tool/actions) tab. If **Deploy GitHub Pages** did not run after your last push, select it → **Run workflow** (or push any commit to `master`) so `dist` is built and published.
+1. Open [Pages settings](https://github.com/kaisarnajar/video-compression-tool/settings/pages).
+2. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+3. Choose **Branch:** `master`, **Folder:** `/docs`, then **Save**.
 
-After a successful deploy, the site is:
+Live URL:
 
 **https://kaisarnajar.github.io/video-compression-tool/**
 
-That path matches `base: '/video-compression-tool/'` in [vite.config.ts](vite.config.ts).
-
-### Optional: enable via API
-
-If you use a [personal access token](https://github.com/settings/tokens) with **Administration** → **Pages** on this repo (or classic token with `repo` scope):
-
-```bash
-curl -L -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  https://api.github.com/repos/kaisarnajar/video-compression-tool/pages \
-  -d '{"build_type":"workflow"}'
-```
-
-If Pages already exists with another source, you may need **PUT** to switch `build_type` to `workflow` (see [GitHub REST API: Pages](https://docs.github.com/en/rest/pages/pages)).
+If Pages was previously set to **GitHub Actions**, switch it to **Deploy from a branch** as above (you can ignore old workflow runs).
 
 ## Notes
 
