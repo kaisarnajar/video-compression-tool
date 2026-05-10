@@ -1,0 +1,173 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #e8eaed;
+  background-color: #12141a;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 650;
+}
+
+.lede {
+  margin: 0;
+  color: #9aa0a6;
+  font-size: 0.95rem;
+}
+
+.main {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.presets {
+  margin: 0;
+  padding: 1rem 1rem 1rem 1.25rem;
+  border: 1px solid #2a2f3a;
+  border-radius: 10px;
+  background: #1a1d26;
+}
+
+.presets legend {
+  padding: 0 0.35rem;
+  color: #bdc1c6;
+  font-weight: 600;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+  cursor: pointer;
+}
+
+.sources .label {
+  margin: 0;
+  font-weight: 600;
+  color: #bdc1c6;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.btn {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid #3c424f;
+  padding: 0.5rem 1rem;
+  background: #252a35;
+  color: #e8eaed;
+}
+
+.btn:hover:not(:disabled) {
+  background: #2f3542;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  border-color: #4c6fff;
+  background: #3040a0;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3a4db8;
+}
+
+.btn-lg {
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+}
+
+.folder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.folder-panel label {
+  font-weight: 600;
+  color: #bdc1c6;
+  font-size: 0.9rem;
+}
+
+.select {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #2a2f3a;
+  background: #1a1d26;
+  color: #e8eaed;
+  max-width: 100%;
+}
+
+.status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #9aa0a6;
+}
+
+.progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.progress-wrap label {
+  font-size: 0.85rem;
+  color: #bdc1c6;
+}
+
+progress {
+  width: 100%;
+  height: 0.65rem;
+  accent-color: #6b7cff;
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #9aa0a6;
+}
+
+.message {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 0.95rem;
+  color: #8ab4f8;
+}
+
+.message[data-error='1'] {
+  color: #f28b82;
+}

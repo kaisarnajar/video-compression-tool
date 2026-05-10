@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video compression</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <h1>Video compression</h1>
+        <p class="lede">
+          Compress video in the browser with ffmpeg (WebAssembly). Same-folder save is available in Chromium when you use
+          <strong>Select folder</strong>; other browsers download the result with the correct filename.
+        </p>
+      </header>
+
+      <main class="main">
+        <fieldset class="presets">
+          <legend>Compression</legend>
+          <label class="radio"
+            ><input type="radio" name="preset" value="low" checked /> Low (larger file, CRF 23)</label
+          >
+          <label class="radio"
+            ><input type="radio" name="preset" value="medium" /> Medium (CRF 26)</label
+          >
+          <label class="radio"><input type="radio" name="preset" value="high" /> High (smaller file, CRF 28)</label>
+        </fieldset>
+
+        <section class="sources">
+          <p class="label">Video source</p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="btn-folder">Select folder</button>
+            <button type="button" class="btn" id="btn-file">Select video file</button>
+          </div>
+          <input type="file" id="file-input" accept="video/*" hidden />
+        </section>
+
+        <section class="folder-panel" id="folder-panel" hidden>
+          <label for="folder-select">Video in folder</label>
+          <select id="folder-select" class="select"></select>
+        </section>
+
+        <p class="status" id="selection-status">No file selected.</p>
+
+        <button type="button" class="btn btn-primary btn-lg" id="btn-compress" disabled>Compress</button>
+
+        <div class="progress-wrap" id="progress-wrap" hidden>
+          <label for="progress-bar">Progress</label>
+          <progress id="progress-bar" max="1" value="0"></progress>
+          <p class="progress-text" id="progress-text"></p>
+        </div>
+
+        <p class="message" id="message" role="status"></p>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
