@@ -5,57 +5,142 @@
     <link rel="icon" type="image/svg+xml" href="/video-compression-tool/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Video compression</title>
-    <script type="module" crossorigin src="/video-compression-tool/assets/index-CJI7zzZC.js"></script>
-    <link rel="stylesheet" crossorigin href="/video-compression-tool/assets/index-iVBI5tC0.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/video-compression-tool/assets/index-DJDL-53V.js"></script>
+    <link rel="stylesheet" crossorigin href="/video-compression-tool/assets/index-BaNCzPCS.css">
   </head>
   <body>
     <div id="app">
-      <header class="header">
-        <h1>Video compression</h1>
-        <p class="lede">
-          Compress video in the browser with ffmpeg (WebAssembly). Same-folder save is available in Chromium when you use
-          <strong>Select folder</strong>; other browsers download the result with the correct filename.
+      <div class="bg-grid" aria-hidden="true"></div>
+
+      <header class="hero">
+        <p class="hero__eyebrow">Local · Private · No upload</p>
+        <h1 class="hero__title">Compress your video</h1>
+        <p class="hero__desc">
+          H.264 encoding runs entirely in your browser via ffmpeg (WebAssembly). Your file never leaves your device.
         </p>
       </header>
 
-      <main class="main">
-        <fieldset class="presets">
-          <legend>Compression</legend>
-          <label class="radio"
-            ><input type="radio" name="preset" value="low" checked /> Low (larger file, CRF 23)</label
-          >
-          <label class="radio"
-            ><input type="radio" name="preset" value="medium" /> Medium (CRF 26)</label
-          >
-          <label class="radio"><input type="radio" name="preset" value="high" /> High (smaller file, CRF 28)</label>
-        </fieldset>
+      <main class="panels">
+        <section class="panel">
+          <div class="panel__head">
+            <span class="panel__step">1</span>
+            <div>
+              <h2 class="panel__title">Compression strength</h2>
+              <p class="panel__hint">Lower CRF = larger file, higher quality.</p>
+            </div>
+          </div>
+          <div class="preset-grid" role="radiogroup" aria-label="Compression preset">
+            <label class="preset">
+              <input type="radio" name="preset" value="low" checked />
+              <span class="preset__card">
+                <span class="preset__name">Low</span>
+                <span class="preset__crf mono">CRF 23</span>
+                <span class="preset__note">Gentler compression</span>
+              </span>
+            </label>
+            <label class="preset">
+              <input type="radio" name="preset" value="medium" />
+              <span class="preset__card">
+                <span class="preset__name">Medium</span>
+                <span class="preset__crf mono">CRF 26</span>
+                <span class="preset__note">Balanced</span>
+              </span>
+            </label>
+            <label class="preset">
+              <input type="radio" name="preset" value="high" />
+              <span class="preset__card">
+                <span class="preset__name">High</span>
+                <span class="preset__crf mono">CRF 28</span>
+                <span class="preset__note">Smaller file</span>
+              </span>
+            </label>
+          </div>
+        </section>
 
-        <section class="sources">
-          <p class="label">Video source</p>
-          <div class="btn-row">
-            <button type="button" class="btn btn-primary" id="btn-folder">Select folder</button>
-            <button type="button" class="btn" id="btn-file">Select video file</button>
+        <section class="panel">
+          <div class="panel__head">
+            <span class="panel__step">2</span>
+            <div>
+              <h2 class="panel__title">Choose video</h2>
+              <p class="panel__hint">Folder mode saves next to the source in Chrome &amp; Edge.</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-folder" id="btn-folder">
+              <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+              </svg>
+              <span class="btn__text">
+                <span class="btn__label">Select folder</span>
+                <span class="btn__sub">Save output beside the file</span>
+              </span>
+            </button>
+            <button type="button" class="btn btn-file" id="btn-file">
+              <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              <span class="btn__text">
+                <span class="btn__label">Select video file</span>
+                <span class="btn__sub">Download when done</span>
+              </span>
+            </button>
           </div>
           <input type="file" id="file-input" accept="video/*" hidden />
+
+          <div class="folder-panel" id="folder-panel" hidden>
+            <label class="field-label" for="folder-select">Video in this folder</label>
+            <select id="folder-select" class="select"></select>
+          </div>
+
+          <div class="selection" id="selection-card">
+            <div class="selection__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+            </div>
+            <div class="selection__text">
+              <p class="selection__primary" id="selection-primary">No video selected</p>
+              <p class="selection__secondary" id="selection-secondary" hidden></p>
+            </div>
+          </div>
         </section>
 
-        <section class="folder-panel" id="folder-panel" hidden>
-          <label for="folder-select">Video in folder</label>
-          <select id="folder-select" class="select"></select>
+        <section class="panel panel--cta">
+          <div class="panel__head">
+            <span class="panel__step">3</span>
+            <h2 class="panel__title">Run</h2>
+          </div>
+          <button type="button" class="btn-compress" id="btn-compress" disabled>
+            <span class="btn-compress__label">Compress video</span>
+            <span class="btn-compress__mono mono" id="compress-out-hint"></span>
+          </button>
+
+          <div class="progress-block" id="progress-wrap" hidden>
+            <div class="progress-block__row">
+              <span class="progress-block__label">Encoding</span>
+              <span class="progress-block__pct mono" id="progress-text">0%</span>
+            </div>
+            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <p class="toast" id="message" role="status"></p>
         </section>
-
-        <p class="status" id="selection-status">No file selected.</p>
-
-        <button type="button" class="btn btn-primary btn-lg" id="btn-compress" disabled>Compress</button>
-
-        <div class="progress-wrap" id="progress-wrap" hidden>
-          <label for="progress-bar">Progress</label>
-          <progress id="progress-bar" max="1" value="0"></progress>
-          <p class="progress-text" id="progress-text"></p>
-        </div>
-
-        <p class="message" id="message" role="status"></p>
       </main>
+
+      <footer class="foot">
+        <p>Output name: <span class="mono">originalname_compression.mp4</span></p>
+      </footer>
     </div>
   </body>
 </html>

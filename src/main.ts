@@ -61,10 +61,14 @@ const els = {
   fileInput: document.querySelector<HTMLInputElement>('#file-input')!,
   folderPanel: document.querySelector<HTMLElement>('#folder-panel')!,
   folderSelect: document.querySelector<HTMLSelectElement>('#folder-select')!,
-  selectionStatus: document.querySelector<HTMLElement>('#selection-status')!,
+  selectionCard: document.querySelector<HTMLElement>('#selection-card')!,
+  selectionPrimary: document.querySelector<HTMLElement>('#selection-primary')!,
+  selectionSecondary: document.querySelector<HTMLElement>('#selection-secondary')!,
   btnCompress: document.querySelector<HTMLButtonElement>('#btn-compress')!,
+  compressOutHint: document.querySelector<HTMLElement>('#compress-out-hint')!,
   progressWrap: document.querySelector<HTMLElement>('#progress-wrap')!,
-  progressBar: document.querySelector<HTMLProgressElement>('#progress-bar')!,
+  progressTrack: document.querySelector<HTMLElement>('#progress-track')!,
+  progressFill: document.querySelector<HTMLElement>('#progress-fill')!,
   progressText: document.querySelector<HTMLElement>('#progress-text')!,
   message: document.querySelector<HTMLElement>('#message')!,
 }
@@ -84,13 +88,44 @@ let activeLabel = ''
 const ffmpeg = new FFmpeg()
 let ffmpegLoaded = false
 
+function setProgress(ratio: number): void {
+  const r = Number.isFinite(ratio) ? Math.min(1, Math.max(0, ratio)) : 0
+  const pct = Math.round(r * 100)
+  els.progressFill.style.width = `${pct}%`
+  els.progressText.textContent = `${pct}%`
+  els.progressTrack.setAttribute('aria-valuenow', String(pct))
+}
+
 ffmpeg.on('progress', ({ progress }) => {
-  els.progressBar.value = Number.isFinite(progress) ? progress : 0
-  els.progressText.textContent = `${Math.round((Number.isFinite(progress) ? progress : 0) * 100)}%`
+  setProgress(Number.isFinite(progress) ? progress : 0)
 })
 
-function setSelectionStatus(text: string): void {
-  els.selectionStatus.textContent = text
+function updateOutputHint(): void {
+  els.compressOutHint.textContent = activeLabel ? `Creates ${outputFilename(activeLabel)}` : ''
+}
+
+function setSelectionEmpty(primary = 'No video selected', secondary?: string): void {
+  els.selectionCard.classList.remove('has-file')
+  els.selectionPrimary.textContent = primary
+  if (secondary) {
+    els.selectionSecondary.hidden = false
+    els.selectionSecondary.textContent = secondary
+  } else {
+    els.selectionSecondary.hidden = true
+    els.selectionSecondary.textContent = ''
+  }
+  updateOutputHint()
+}
+
+function setSelectionWithFile(filename: string, mode: 'folder' | 'download'): void {
+  els.selectionCard.classList.add('has-file')
+  els.selectionPrimary.textContent = filename
+  els.selectionSecondary.hidden = false
+  els.selectionSecondary.textContent =
+    mode === 'folder'
+      ? 'Writes beside the original in the folder you chose.'
+      : 'Downloads automatically when encoding completes.'
+  updateOutputHint()
 }
 
 function setMessage(text: string, isError = false): void {
@@ -116,18 +151,19 @@ async function refreshFolderSelection(): Promise<void> {
   if (!handle) {
     activeFile = null
     activeLabel = ''
+    setSelectionEmpty()
     updateCompressEnabled()
     return
   }
   activeFile = await handle.getFile()
   activeLabel = activeFile.name
-  setSelectionStatus(`Selected: ${activeLabel} (same-folder save enabled)`)
+  setSelectionWithFile(activeLabel, 'folder')
   updateCompressEnabled()
 }
 
 async function onPickFolder(): Promise<void> {
   if (!supportsFolderPick()) {
-    setMessage('Folder selection is not supported in this browser. Use “Select video file” — the result will download.', true)
+    setMessage('Folder selection is not supported in this browser. Use “Select video file”.', true)
     return
   }
   setMessage('')
@@ -140,7 +176,7 @@ async function onPickFolder(): Promise<void> {
       els.folderPanel.hidden = true
       activeFile = null
       activeLabel = ''
-      setSelectionStatus('No video files found in that folder.')
+      setSelectionEmpty('No video files in that folder', 'Pick another folder or use file selection.')
       updateCompressEnabled()
       return
     }
@@ -173,13 +209,13 @@ els.fileInput.addEventListener('change', () => {
   if (!f) {
     activeFile = null
     activeLabel = ''
-    setSelectionStatus('No file selected.')
+    setSelectionEmpty(undefined, 'Pick a folder or a single video file.')
     updateCompressEnabled()
     return
   }
   activeFile = f
   activeLabel = f.name
-  setSelectionStatus(`Selected: ${activeLabel} (will download after compression)`)
+  setSelectionWithFile(activeLabel, 'download')
   updateCompressEnabled()
 })
 
@@ -202,6 +238,12 @@ els.btnCompress.addEventListener('click', () => {
   void runCompress()
 })
 
+document.querySelectorAll('input[name="preset"]').forEach((el) => {
+  el.addEventListener('change', () => updateOutputHint())
+})
+
+setSelectionEmpty(undefined, 'Pick a folder or a single video file.')
+
 async function runCompress(): Promise<void> {
   const file = activeFile
   if (!file) return
@@ -212,8 +254,7 @@ async function runCompress(): Promise<void> {
   const inputName = `${INPUT_WORK}${ext}`
 
   els.progressWrap.hidden = false
-  els.progressBar.value = 0
-  els.progressText.textContent = '0%'
+  setProgress(0)
   els.btnCompress.disabled = true
   setMessage('')
 
@@ -255,10 +296,10 @@ async function runCompress(): Promise<void> {
 
     if (directoryHandle) {
       await saveToDirectory(directoryHandle, outName, bytes)
-      setMessage(`Saved: ${outName} in the selected folder.`)
+      setMessage(`Saved ${outName} in your folder.`)
     } else {
       triggerDownload(outName, bytes)
-      setMessage(`Download started: ${outName}`)
+      setMessage(`Started download · ${outName}`)
     }
   } catch (e) {
     setMessage((e as Error).message || String(e), true)
