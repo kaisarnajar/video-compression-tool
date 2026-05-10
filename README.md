@@ -28,11 +28,34 @@ Output is in `dist/`. The production `base` path is set for a **project site** a
 
 ## GitHub Pages
 
-1. Create a repository (for example `video-compression-tool`) and push the `master` branch.
-2. In the repo on GitHub: **Settings → Pages → Build and deployment → Source** → choose **GitHub Actions**.
-3. The [Deploy GitHub Pages](.github/workflows/deploy-pages.yml) workflow builds on every push to `master` and publishes `dist`.
+This repo includes [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml). GitHub still requires **one manual step** to turn Pages on (there is no `pages.yml` in git that can skip this).
 
-The app will be available at `https://<username>.github.io/video-compression-tool/` (path matches the `base` in `vite.config.ts`).
+### Enable Pages (once)
+
+1. Open **Pages settings** for the repo:  
+   [github.com/kaisarnajar/video-compression-tool/settings/pages](https://github.com/kaisarnajar/video-compression-tool/settings/pages)
+2. Under **Build and deployment**, set **Source** to **GitHub Actions** (not “Deploy from a branch”).
+3. Open the [**Actions**](https://github.com/kaisarnajar/video-compression-tool/actions) tab. If **Deploy GitHub Pages** did not run after your last push, select it → **Run workflow** (or push any commit to `master`) so `dist` is built and published.
+
+After a successful deploy, the site is:
+
+**https://kaisarnajar.github.io/video-compression-tool/**
+
+That path matches `base: '/video-compression-tool/'` in [vite.config.ts](vite.config.ts).
+
+### Optional: enable via API
+
+If you use a [personal access token](https://github.com/settings/tokens) with **Administration** → **Pages** on this repo (or classic token with `repo` scope):
+
+```bash
+curl -L -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.github.com/repos/kaisarnajar/video-compression-tool/pages \
+  -d '{"build_type":"workflow"}'
+```
+
+If Pages already exists with another source, you may need **PUT** to switch `build_type` to `workflow` (see [GitHub REST API: Pages](https://docs.github.com/en/rest/pages/pages)).
 
 ## Notes
 
